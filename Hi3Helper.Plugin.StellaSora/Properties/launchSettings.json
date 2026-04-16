@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Hi3Helper.Plugin.StellaSora": {
+      "commandName": "Project",
+      "nativeDebugging": true
+    }
+  }
+}
