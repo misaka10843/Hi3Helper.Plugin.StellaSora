@@ -14,7 +14,7 @@ namespace Hi3Helper.Plugin.StellaSora.Management.PresetConfig;
 [GeneratedComClass]
 public partial class StellaSoraTwPresetConfig : PluginPresetConfigBase
 {
-    private const string ExEcutableName = "xtlr.exe";
+    private const string ExEcutableName = "StellaSora.exe";
     private const string TwApiBaseUrl = "https://api-launcher-tw.stargazer-games.com/api/launcher";
     private const string TwAuthSalt = "DE7108E9B2842FD460F4777702727869";
     private const string TwAuthGameId = "StellaSora_TW";
