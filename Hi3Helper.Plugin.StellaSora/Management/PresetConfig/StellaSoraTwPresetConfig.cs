@@ -14,13 +14,13 @@ namespace Hi3Helper.Plugin.StellaSora.Management.PresetConfig;
 [GeneratedComClass]
 public partial class StellaSoraTwPresetConfig : PluginPresetConfigBase
 {
-    private const string ExEcutableName    = "xtlr.exe";
-    private const string TwApiBaseUrl      = "https://api-launcher-tw.stargazer-games.com/api/launcher";
-    private const string TwAuthSalt        = "DE7108E9B2842FD460F4777702727869";
-    private const string TwAuthGameId        = "StellaSora_TW";
-    private const string TwLauncherVersion   = "1.3.0";
+    private const string ExEcutableName = "xtlr.exe";
+    private const string TwApiBaseUrl = "https://api-launcher-tw.stargazer-games.com/api/launcher";
+    private const string TwAuthSalt = "DE7108E9B2842FD460F4777702727869";
+    private const string TwAuthGameId = "StellaSora_TW";
+    private const string TwLauncherVersion = "1.3.0";
 
-    [field: AllowNull] [field: MaybeNull] public override string GameName           => field ??= "Stella Sora";
+    [field: AllowNull] [field: MaybeNull] public override string GameName => field ??= "Stella Sora";
     [field: AllowNull] [field: MaybeNull] public override string GameExecutableName => field ??= ExEcutableName;
 
     public override string GameAppDataPath
@@ -31,7 +31,7 @@ public partial class StellaSoraTwPresetConfig : PluginPresetConfigBase
             GameManager?.GetGamePath(out gamePath);
             if (!string.IsNullOrEmpty(gamePath))
             {
-                string dataFolderName = Path.GetFileNameWithoutExtension(GameExecutableName) + "_Data";
+                var dataFolderName = Path.GetFileNameWithoutExtension(GameExecutableName) + "_Data";
                 return Path.Combine(gamePath, dataFolderName);
             }
 
@@ -39,18 +39,18 @@ public partial class StellaSoraTwPresetConfig : PluginPresetConfigBase
         }
     }
 
-    [field: AllowNull] [field: MaybeNull] public override string GameLogFileName  => field ??= "Player.log";
-    [field: AllowNull] [field: MaybeNull] public override string GameVendorName   => field ??= "Yostar";
+    [field: AllowNull] [field: MaybeNull] public override string GameLogFileName => field ??= "Player.log";
+    [field: AllowNull] [field: MaybeNull] public override string GameVendorName => field ??= "Yostar";
     [field: AllowNull] [field: MaybeNull] public override string GameRegistryKeyName => field ??= "StellaSora";
-    [field: AllowNull] [field: MaybeNull] public override string ProfileName       => field ??= "StellaSoraTw";
+    [field: AllowNull] [field: MaybeNull] public override string ProfileName => field ??= "StellaSoraTw";
 
     [field: AllowNull]
     [field: MaybeNull]
     public override string ZoneDescription => field ??= "《星塔旅人》是一款由悠星開發的動作角色扮演遊戲。";
 
-    [field: AllowNull] [field: MaybeNull] public override string ZoneName     => field ??= "Taiwan";
-    [field: AllowNull] [field: MaybeNull] public override string ZoneFullName => field ??= "星塔旅人 (台灣)";
-    [field: AllowNull] [field: MaybeNull] public override string ZoneLogoUrl   => field ??= "";
+    [field: AllowNull] [field: MaybeNull] public override string ZoneName => field ??= "繁体中文";
+    [field: AllowNull] [field: MaybeNull] public override string ZoneFullName => field ??= "星塔旅人 (台服)";
+    [field: AllowNull] [field: MaybeNull] public override string ZoneLogoUrl => field ??= "";
     [field: AllowNull] [field: MaybeNull] public override string ZonePosterUrl => field ??= "";
 
     [field: AllowNull]
@@ -61,11 +61,11 @@ public partial class StellaSoraTwPresetConfig : PluginPresetConfigBase
 
     [field: AllowNull] [field: MaybeNull] public override string GameMainLanguage => field ??= "zh-TW";
 
+    [field: AllowNull] [field: MaybeNull] public override string LauncherGameDirectoryName => field ??= "StellaSora_TW";
+
     [field: AllowNull]
     [field: MaybeNull]
-    public override string LauncherGameDirectoryName => field ??= "StellaSora_TW";
-
-    [field: AllowNull] [field: MaybeNull] public override List<string> SupportedLanguages => field ??= ["Chinese Traditional"];
+    public override List<string> SupportedLanguages => field ??= ["Chinese Traditional"];
 
     public override ILauncherApiMedia? LauncherApiMedia
     {
@@ -85,8 +85,7 @@ public partial class StellaSoraTwPresetConfig : PluginPresetConfigBase
             ExEcutableName,
             TwApiBaseUrl,
             TwAuthSalt,
-            TwAuthGameId,
-            TwLauncherVersion);
+            TwAuthGameId);
         set;
     }
 

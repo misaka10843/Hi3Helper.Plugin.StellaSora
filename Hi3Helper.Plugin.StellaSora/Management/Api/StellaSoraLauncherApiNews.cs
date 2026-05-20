@@ -20,12 +20,12 @@ namespace Hi3Helper.Plugin.StellaSora.Management.Api;
 public partial class StellaSoraLauncherApiNews : LauncherApiNewsBase
 {
     private readonly string _apiBaseUrl;
-    private readonly string _authSalt;
     private readonly string _authGameId;
 
-    private StellaSoraResourceData? _resourceData;
-
     private readonly string _authLauncherVersion;
+    private readonly string _authSalt;
+
+    private StellaSoraResourceData? _resourceData;
 
     public StellaSoraLauncherApiNews(
         string apiBaseUrl,
@@ -33,10 +33,10 @@ public partial class StellaSoraLauncherApiNews : LauncherApiNewsBase
         string authGameId,
         string authLauncherVersion)
     {
-        _apiBaseUrl            = apiBaseUrl;
-        _authSalt              = authSalt;
-        _authGameId            = authGameId;
-        _authLauncherVersion   = authLauncherVersion;
+        _apiBaseUrl = apiBaseUrl;
+        _authSalt = authSalt;
+        _authGameId = authGameId;
+        _authLauncherVersion = authLauncherVersion;
     }
 
     [field: AllowNull] [field: MaybeNull] protected override HttpClient ApiResponseHttpClient { get; set; } = new();
@@ -60,9 +60,10 @@ public partial class StellaSoraLauncherApiNews : LauncherApiNewsBase
     {
         try
         {
-            string url = $"{_apiBaseUrl}/operations/resource";
+            var url = $"{_apiBaseUrl}/operations/resource";
             var request = new HttpRequestMessage(HttpMethod.Get, url);
-            request.Headers.TryAddWithoutValidation("Authorization", StellaSoraApiHelper.GetAuthHeaderString(_authSalt, _authGameId, _authLauncherVersion));
+            request.Headers.TryAddWithoutValidation("Authorization",
+                StellaSoraApiHelper.GetAuthHeaderString(_authSalt, _authGameId, _authLauncherVersion));
 
             using var response = await ApiResponseHttpClient.SendAsync(request, token);
             response.EnsureSuccessStatusCode();
@@ -70,10 +71,7 @@ public partial class StellaSoraLauncherApiNews : LauncherApiNewsBase
             var result = await response.Content.ReadFromJsonAsync(
                 StellaSoraApiContext.Default.StellaSoraBaseResponseStellaSoraResourceData, token);
 
-            if (result?.Code == 200 && result.Data != null)
-            {
-                _resourceData = result.Data;
-            }
+            if (result?.Code == 200 && result.Data != null) _resourceData = result.Data;
 
             return 0;
         }
@@ -98,10 +96,7 @@ public partial class StellaSoraLauncherApiNews : LauncherApiNewsBase
             if (category.Rows == null) continue;
             var tName = category.TypeLabel ?? "Info";
 
-            foreach (var item in category.Rows)
-            {
-                flatList.Add(new FlatNewsItem { Item = item, TypeName = tName });
-            }
+            foreach (var item in category.Rows) flatList.Add(new FlatNewsItem { Item = item, TypeName = tName });
         }
 
         if (flatList.Count == 0)

@@ -3,7 +3,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Hi3Helper.Plugin.Core;
-using Hi3Helper.Plugin.Core.Utility;
 using Microsoft.Extensions.Logging;
 
 namespace Hi3Helper.Plugin.StellaSora.Management.Api;
@@ -11,7 +10,7 @@ namespace Hi3Helper.Plugin.StellaSora.Management.Api;
 public static class StellaSoraApiHelper
 {
     /// <summary>
-    /// 生成 Yostar 启动器 API 所需的 Authorization Header 字符串
+    ///     生成 Yostar 启动器 API 所需的 Authorization Header 字符串
     /// </summary>
     /// <param name="salt">区服专用 Salt</param>
     /// <param name="gameId">区服专用 GameId</param>
@@ -25,7 +24,7 @@ public static class StellaSoraApiHelper
     {
         try
         {
-            long time = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            var time = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
             // 严格构建 head 对象
             var head = new StellaSoraAuthHead
@@ -35,11 +34,11 @@ public static class StellaSoraApiHelper
                 Version = launcherVersion
             };
 
-            string headJson = JsonSerializer.Serialize(head, StellaSoraApiContext.Default.StellaSoraAuthHead);
+            var headJson = JsonSerializer.Serialize(head, StellaSoraApiContext.Default.StellaSoraAuthHead);
 
-            string stringToSign = headJson + postData + salt;
+            var stringToSign = headJson + postData + salt;
 
-            string sign = CalculateMD5(stringToSign).ToLowerInvariant();
+            var sign = CalculateMD5(stringToSign).ToLowerInvariant();
 
             var authHeader = new StellaSoraAuthHeader
             {
@@ -59,8 +58,8 @@ public static class StellaSoraApiHelper
     private static string CalculateMD5(string input)
     {
         using var md5 = MD5.Create();
-        byte[] inputBytes = Encoding.UTF8.GetBytes(input);
-        byte[] hashBytes = md5.ComputeHash(inputBytes);
+        var inputBytes = Encoding.UTF8.GetBytes(input);
+        var hashBytes = md5.ComputeHash(inputBytes);
         return Convert.ToHexString(hashBytes);
     }
 }

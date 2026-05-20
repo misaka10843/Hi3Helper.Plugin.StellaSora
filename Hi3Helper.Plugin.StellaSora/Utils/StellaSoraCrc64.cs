@@ -19,6 +19,7 @@ public static class StellaSoraCrc64
                 else
                     part >>= 1;
             }
+
             Table[i] = part;
         }
     }
@@ -27,7 +28,7 @@ public static class StellaSoraCrc64
     {
         if (!File.Exists(filePath)) return 0;
 
-        ulong hash = 0;
+        ulong hash = 0xFFFFFFFFFFFFFFFF;
         using var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, 131072);
         byte[] buffer = System.Buffers.ArrayPool<byte>.Shared.Rent(131072);
         try
@@ -45,6 +46,7 @@ public static class StellaSoraCrc64
         {
             System.Buffers.ArrayPool<byte>.Shared.Return(buffer);
         }
-        return hash;
+
+        return hash ^ 0xFFFFFFFFFFFFFFFF;
     }
 }

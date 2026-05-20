@@ -38,7 +38,8 @@ public partial class Exports
                 {
                     process.PriorityBoostEnabled = isRunBoosted;
                     process.PriorityClass = processPriority;
-                    InstanceLogger.LogInformation($"[StellaSora::LaunchGame] Process priority set to: {processPriority}");
+                    InstanceLogger.LogInformation(
+                        $"[StellaSora::LaunchGame] Process priority set to: {processPriority}");
                 }
                 catch (Exception e)
                 {
@@ -107,7 +108,8 @@ public partial class Exports
         wasGameRunning = true;
         gameStartTime = process.StartTime;
         process.Kill();
-        InstanceLogger.LogInformation($"[StellaSora::KillGame] Game process (PID: {process.Id}) has been forcefully killed.");
+        InstanceLogger.LogInformation(
+            $"[StellaSora::KillGame] Game process (PID: {process.Id}) has been forcefully killed.");
         return true;
     }
 
@@ -190,12 +192,13 @@ public partial class Exports
         var retry = 5;
         while (!File.Exists(gameLogPath) && retry >= 0)
         {
-            InstanceLogger.LogInformation($"[StellaSora::ReadGameLog] Waiting for log file to be generated... Retry count: {retry}");
+            InstanceLogger.LogInformation(
+                $"[StellaSora::ReadGameLog] Waiting for log file to be generated... Retry count: {retry}");
             await Task.Delay(1000, token);
             --retry;
         }
 
-        if (retry <= 0) 
+        if (retry <= 0)
         {
             InstanceLogger.LogWarning("[StellaSora::ReadGameLog] Log file was not found. Skipping log read.");
             return;

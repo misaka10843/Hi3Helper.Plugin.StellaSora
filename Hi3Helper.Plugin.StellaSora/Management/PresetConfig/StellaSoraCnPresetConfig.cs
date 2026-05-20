@@ -14,10 +14,10 @@ namespace Hi3Helper.Plugin.StellaSora.Management.PresetConfig;
 [GeneratedComClass]
 public partial class StellaSoraCnPresetConfig : PluginPresetConfigBase
 {
-    private const string ExEcutableName    = "xtlr.exe";
-    private const string CnApiBaseUrl      = "https://launcher-api.yostar.net/api/launcher";
-    private const string CnAuthSalt        = "872550AD59A235662C5B7D5F88CEBE4B";
-    private const string CnAuthGameId      = "StellaSora_CN";
+    private const string ExEcutableName = "xtlr.exe";
+    private const string CnApiBaseUrl = "https://launcher-api.yostar.net/api/launcher";
+    private const string CnAuthSalt = "872550AD59A235662C5B7D5F88CEBE4B";
+    private const string CnAuthGameId = "StellaSora_CN";
     private const string CnLauncherVersion = "1.3.0";
 
     [field: AllowNull] [field: MaybeNull] public override string GameName => field ??= "Stella Sora";
@@ -31,7 +31,7 @@ public partial class StellaSoraCnPresetConfig : PluginPresetConfigBase
             GameManager?.GetGamePath(out gamePath);
             if (!string.IsNullOrEmpty(gamePath))
             {
-                string dataFolderName = Path.GetFileNameWithoutExtension(GameExecutableName) + "_Data";
+                var dataFolderName = Path.GetFileNameWithoutExtension(GameExecutableName) + "_Data";
                 return Path.Combine(gamePath, dataFolderName);
             }
 
@@ -82,7 +82,7 @@ public partial class StellaSoraCnPresetConfig : PluginPresetConfigBase
 
     public override IGameManager? GameManager
     {
-        get => field ??= new StellaSoraGameManager(ExEcutableName, CnApiBaseUrl, CnAuthSalt, CnAuthGameId, CnLauncherVersion);
+        get => field ??= new StellaSoraGameManager(ExEcutableName);
         set;
     }
 

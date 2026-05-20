@@ -18,12 +18,12 @@ namespace Hi3Helper.Plugin.StellaSora.Management.Api;
 public partial class StellaSoraLauncherApiMedia : LauncherApiMediaBase
 {
     private readonly string _apiBaseUrl;
-    private readonly string _authSalt;
     private readonly string _authGameId;
 
-    private string? _backgroundUrl;
-
     private readonly string _authLauncherVersion;
+    private readonly string _authSalt;
+
+    private string? _backgroundUrl;
 
     public StellaSoraLauncherApiMedia(
         string apiBaseUrl,
@@ -31,10 +31,10 @@ public partial class StellaSoraLauncherApiMedia : LauncherApiMediaBase
         string authGameId,
         string authLauncherVersion)
     {
-        _apiBaseUrl            = apiBaseUrl;
-        _authSalt              = authSalt;
-        _authGameId            = authGameId;
-        _authLauncherVersion   = authLauncherVersion;
+        _apiBaseUrl = apiBaseUrl;
+        _authSalt = authSalt;
+        _authGameId = authGameId;
+        _authLauncherVersion = authLauncherVersion;
     }
 
     [field: AllowNull] [field: MaybeNull] protected override HttpClient ApiResponseHttpClient { get; set; } = new();
@@ -58,9 +58,10 @@ public partial class StellaSoraLauncherApiMedia : LauncherApiMediaBase
     {
         try
         {
-            string url = $"{_apiBaseUrl}/base/config";
+            var url = $"{_apiBaseUrl}/base/config";
             var request = new HttpRequestMessage(HttpMethod.Get, url);
-            request.Headers.TryAddWithoutValidation("Authorization", StellaSoraApiHelper.GetAuthHeaderString(_authSalt, _authGameId, _authLauncherVersion));
+            request.Headers.TryAddWithoutValidation("Authorization",
+                StellaSoraApiHelper.GetAuthHeaderString(_authSalt, _authGameId, _authLauncherVersion));
 
             using var response = await ApiResponseHttpClient.SendAsync(request, token);
             response.EnsureSuccessStatusCode();
@@ -73,6 +74,7 @@ public partial class StellaSoraLauncherApiMedia : LauncherApiMediaBase
                 _backgroundUrl = result.Data.LauncherBackgroundImg;
                 SharedStatic.InstanceLogger.LogInformation($"[StellaSoraMedia] Background URL: {_backgroundUrl}");
             }
+
             return 0;
         }
         catch (Exception ex)
@@ -82,7 +84,8 @@ public partial class StellaSoraLauncherApiMedia : LauncherApiMediaBase
         }
     }
 
-    public override void GetBackgroundEntries(out nint handle, out int count, out bool isDisposable, out bool isAllocated)
+    public override void GetBackgroundEntries(out nint handle, out int count, out bool isDisposable,
+        out bool isAllocated)
     {
         if (string.IsNullOrEmpty(_backgroundUrl))
         {
@@ -114,7 +117,8 @@ public partial class StellaSoraLauncherApiMedia : LauncherApiMediaBase
         result = LauncherBackgroundFlag.None;
     }
 
-    public override void GetLogoOverlayEntries(out nint handle, out int count, out bool isDisposable, out bool isAllocated)
+    public override void GetLogoOverlayEntries(out nint handle, out int count, out bool isDisposable,
+        out bool isAllocated)
     {
         handle = nint.Zero;
         count = 0;
@@ -138,7 +142,8 @@ public partial class StellaSoraLauncherApiMedia : LauncherApiMediaBase
         }
         catch (Exception ex)
         {
-            SharedStatic.InstanceLogger.LogError($"[StellaSoraMedia] Background download FAILED: {fileUrl}\nException: {ex}");
+            SharedStatic.InstanceLogger.LogError(
+                $"[StellaSoraMedia] Background download FAILED: {fileUrl}\nException: {ex}");
         }
     }
 

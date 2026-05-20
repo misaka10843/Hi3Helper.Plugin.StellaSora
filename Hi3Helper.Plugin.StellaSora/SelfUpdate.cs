@@ -11,7 +11,7 @@ namespace Hi3Helper.Plugin.StellaSora;
 internal partial class SelfUpdate : PluginSelfUpdateBase
 {
     private const string ExCdnFileSuffix = "StellaSora/";
-    
+
     private const string ExCdn1Url = "https://fastly.jsdelivr.net/gh/misaka10843/CollapsePlugin-ReleaseRepo@main/" +
                                      ExCdnFileSuffix;
 

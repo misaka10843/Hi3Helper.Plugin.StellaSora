@@ -25,8 +25,10 @@ internal partial class StellaSoraGameInstaller : GameInstallerBase
             .AllowRedirections()
             .AllowUntrustedCert()
             .Create();
-        
-        _downloadHttpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) StellaSoraLauncher/1.3.0");
+
+        _downloadHttpClient.Timeout = System.Threading.Timeout.InfiniteTimeSpan;
+        _downloadHttpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) StellaSoraLauncher/1.3.0");
         _downloadHttpClient.DefaultRequestHeaders.TryAddWithoutValidation("Accept", "*/*");
     }
 
@@ -38,26 +40,26 @@ internal partial class StellaSoraGameInstaller : GameInstallerBase
         return await manager.InitAsyncInner(true, token).ConfigureAwait(false);
     }
 
-    protected override async Task<long> GetGameSizeAsyncInner(GameInstallerKind gameInstallerKind, CancellationToken token)
+    protected override async Task<long> GetGameSizeAsyncInner(GameInstallerKind gameInstallerKind,
+        CancellationToken token)
     {
         await InitAsync(token).ConfigureAwait(false);
-        if (GameManager is not StellaSoraGameManager manager || manager.GameManifest == null) 
+        if (GameManager is not StellaSoraGameManager manager || manager.GameManifest == null)
             return 0L;
 
         long totalSize = 0;
         foreach (var file in manager.GameManifest.Files)
-        {
-            if (long.TryParse(file.Size, out long size))
+            if (long.TryParse(file.Size, out var size))
                 totalSize += size;
-        }
         return totalSize;
     }
 
-    protected override async Task<long> GetGameDownloadedSizeAsyncInner(GameInstallerKind gameInstallerKind, CancellationToken token)
+    protected override async Task<long> GetGameDownloadedSizeAsyncInner(GameInstallerKind gameInstallerKind,
+        CancellationToken token)
     {
         await InitAsync(token).ConfigureAwait(false);
 
-        if (GameManager is not StellaSoraGameManager manager || manager.GameManifest == null) 
+        if (GameManager is not StellaSoraGameManager manager || manager.GameManifest == null)
             return 0L;
 
         GameManager.GetGamePath(out var installPath);
@@ -67,25 +69,32 @@ internal partial class StellaSoraGameInstaller : GameInstallerBase
         foreach (var file in manager.GameManifest.Files)
         {
             var filePath = Path.Combine(installPath, file.Path.TrimStart('/'));
-            if (File.Exists(filePath))
-            {
-                downloadedSize += new FileInfo(filePath).Length;
-            }
+            if (File.Exists(filePath)) downloadedSize += new FileInfo(filePath).Length;
         }
 
         return downloadedSize;
     }
 
-    protected override Task StartInstallAsyncInner(InstallProgressDelegate? progressDelegate, InstallProgressStateDelegate? progressStateDelegate, CancellationToken token)
-        => StartInstallCoreAsync(GameInstallerKind.Install, progressDelegate, progressStateDelegate, token);
+    protected override Task StartInstallAsyncInner(InstallProgressDelegate? progressDelegate,
+        InstallProgressStateDelegate? progressStateDelegate, CancellationToken token)
+    {
+        return StartInstallCoreAsync(GameInstallerKind.Install, progressDelegate, progressStateDelegate, token);
+    }
 
-    protected override Task StartUpdateAsyncInner(InstallProgressDelegate? progressDelegate, InstallProgressStateDelegate? progressStateDelegate, CancellationToken token)
-        => StartInstallCoreAsync(GameInstallerKind.Update, progressDelegate, progressStateDelegate, token);
+    protected override Task StartUpdateAsyncInner(InstallProgressDelegate? progressDelegate,
+        InstallProgressStateDelegate? progressStateDelegate, CancellationToken token)
+    {
+        return StartInstallCoreAsync(GameInstallerKind.Update, progressDelegate, progressStateDelegate, token);
+    }
 
-    protected override Task StartPreloadAsyncInner(InstallProgressDelegate? progressDelegate, InstallProgressStateDelegate? progressStateDelegate, CancellationToken token)
-        => StartInstallCoreAsync(GameInstallerKind.Preload, progressDelegate, progressStateDelegate, token);
-    
-    private Task StartInstallCoreAsync(GameInstallerKind kind, InstallProgressDelegate? progressDelegate, InstallProgressStateDelegate? progressStateDelegate, CancellationToken token)
+    protected override Task StartPreloadAsyncInner(InstallProgressDelegate? progressDelegate,
+        InstallProgressStateDelegate? progressStateDelegate, CancellationToken token)
+    {
+        return StartInstallCoreAsync(GameInstallerKind.Preload, progressDelegate, progressStateDelegate, token);
+    }
+
+    private Task StartInstallCoreAsync(GameInstallerKind kind, InstallProgressDelegate? progressDelegate,
+        InstallProgressStateDelegate? progressStateDelegate, CancellationToken token)
     {
         var installer = new Install(this);
         return installer.RunAsync(kind, progressDelegate, progressStateDelegate, token);
@@ -99,8 +108,14 @@ internal partial class StellaSoraGameInstaller : GameInstallerBase
         GameManager.GetGamePath(out var installPath);
         if (string.IsNullOrEmpty(installPath)) return Task.CompletedTask;
 
-        try { if (Directory.Exists(installPath)) Directory.Delete(installPath, true); }
-        catch (Exception ex) { SharedStatic.InstanceLogger.LogError($"[StellaSora] Uninstall failed: {ex.Message}"); }
+        try
+        {
+            if (Directory.Exists(installPath)) Directory.Delete(installPath, true);
+        }
+        catch (Exception ex)
+        {
+            SharedStatic.InstanceLogger.LogError($"[StellaSora] Uninstall failed: {ex.Message}");
+        }
 
         return Task.CompletedTask;
     }

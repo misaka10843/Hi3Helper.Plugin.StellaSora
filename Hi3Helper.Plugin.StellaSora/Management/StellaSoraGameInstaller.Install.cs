@@ -22,9 +22,8 @@ internal partial class StellaSoraGameInstaller
 {
     private sealed class Install
     {
-        private readonly StellaSoraGameInstaller _owner;
-
         private const int MaxConcurrentDownloads = 8;
+        private readonly StellaSoraGameInstaller _owner;
         private long _lastUpdateTime;
 
         public Install(StellaSoraGameInstaller owner)
@@ -46,8 +45,8 @@ internal partial class StellaSoraGameInstaller
             if (string.IsNullOrEmpty(installPath)) throw new InvalidOperationException("Install path is missing.");
 
             var newManifest = manager.GameManifest;
-            var sourceDir   = newManifest.Source;
-            var cdnUrls     = manager.GameResourceDownloadUrls;
+            var sourceDir = newManifest.Source;
+            var cdnUrls = manager.GameResourceDownloadUrls;
             var allNewFiles = newManifest.Files;
 
             progressStateDelegate?.Invoke(InstallProgressState.Preparing);
@@ -58,8 +57,8 @@ internal partial class StellaSoraGameInstaller
 
             if (kind == GameInstallerKind.Update)
             {
-                var localManifest  = manager.ReadLocalManifest(installPath);
-                var currentFiles   = localManifest?.Files ?? [];
+                var localManifest = manager.ReadLocalManifest(installPath);
+                var currentFiles = localManifest?.Files ?? [];
                 (filesToDownload, filesToDelete) = ComputeManifestDiff(currentFiles, allNewFiles, installPath);
 
                 SharedStatic.InstanceLogger.LogInformation(
@@ -98,8 +97,8 @@ internal partial class StellaSoraGameInstaller
         // Helpers
 
         /// <summary>
-        /// Computes which files to download (new / hash-changed / locally missing by size)
-        /// and which to delete (present in old manifest but absent from new manifest).
+        ///     Computes which files to download (new / hash-changed / locally missing by size)
+        ///     and which to delete (present in old manifest but absent from new manifest).
         /// </summary>
         private static (List<StellaSoraManifestFile> needDownload, List<StellaSoraManifestFile> needDelete)
             ComputeManifestDiff(
@@ -107,9 +106,9 @@ internal partial class StellaSoraGameInstaller
                 List<StellaSoraManifestFile> newFiles,
                 string installPath)
         {
-            var needDownload   = new List<StellaSoraManifestFile>();
-            var needDelete     = new List<StellaSoraManifestFile>();
-            var newFileByPath  = newFiles.ToDictionary(f => f.Path, StringComparer.OrdinalIgnoreCase);
+            var needDownload = new List<StellaSoraManifestFile>();
+            var needDelete = new List<StellaSoraManifestFile>();
+            var newFileByPath = newFiles.ToDictionary(f => f.Path, StringComparer.OrdinalIgnoreCase);
             var currFileByPath = currentFiles.ToDictionary(f => f.Path, StringComparer.OrdinalIgnoreCase);
 
             foreach (var newFile in newFiles)
@@ -126,8 +125,8 @@ internal partial class StellaSoraGameInstaller
                 else
                 {
                     // Same manifest hash — do a quick stat check
-                    var localPath    = Path.Combine(installPath, newFile.Path.TrimStart('/'));
-                    long expectedSize = long.Parse(newFile.Size);
+                    var localPath = Path.Combine(installPath, newFile.Path.TrimStart('/'));
+                    var expectedSize = long.Parse(newFile.Size);
                     download = !File.Exists(localPath) || new FileInfo(localPath).Length != expectedSize;
                 }
 
@@ -135,16 +134,14 @@ internal partial class StellaSoraGameInstaller
             }
 
             foreach (var currFile in currentFiles)
-            {
                 if (!newFileByPath.ContainsKey(currFile.Path))
                     needDelete.Add(currFile);
-            }
 
             return (needDownload, needDelete);
         }
 
         /// <summary>
-        /// Returns files whose local size does not match the manifest (used for fresh installs).
+        ///     Returns files whose local size does not match the manifest (used for fresh installs).
         /// </summary>
         private static List<StellaSoraManifestFile> ComputeStatMismatchFiles(
             List<StellaSoraManifestFile> files, string installPath)
@@ -152,11 +149,12 @@ internal partial class StellaSoraGameInstaller
             var result = new List<StellaSoraManifestFile>();
             foreach (var file in files)
             {
-                var localPath    = Path.Combine(installPath, file.Path.TrimStart('/'));
-                long expectedSize = long.Parse(file.Size);
+                var localPath = Path.Combine(installPath, file.Path.TrimStart('/'));
+                var expectedSize = long.Parse(file.Size);
                 if (!File.Exists(localPath) || new FileInfo(localPath).Length != expectedSize)
                     result.Add(file);
             }
+
             return result;
         }
 
@@ -183,7 +181,7 @@ internal partial class StellaSoraGameInstaller
         }
 
         /// <summary>
-        /// Downloads a list of files concurrently with per-file CRC verification and CDN fallback.
+        ///     Downloads a list of files concurrently with per-file CRC verification and CDN fallback.
         /// </summary>
         private async Task DownloadFilesAsync(
             List<StellaSoraManifestFile> files,
@@ -201,8 +199,8 @@ internal partial class StellaSoraGameInstaller
 
             void ReportThrottled()
             {
-                long now  = Stopwatch.GetTimestamp();
-                long last = Interlocked.Read(ref _lastUpdateTime);
+                var now = Stopwatch.GetTimestamp();
+                var last = Interlocked.Read(ref _lastUpdateTime);
                 if (now - last > Stopwatch.Frequency / 10
                     && Interlocked.CompareExchange(ref _lastUpdateTime, now, last) == last)
                     progressDelegate?.Invoke(in progress);
@@ -211,19 +209,18 @@ internal partial class StellaSoraGameInstaller
             progressDelegate?.Invoke(in progress);
             progressStateDelegate?.Invoke(InstallProgressState.Download);
 
-            using var semaphore    = new SemaphoreSlim(MaxConcurrentDownloads);
-            var       downloadTasks = new List<Task>();
+            using var semaphore = new SemaphoreSlim(MaxConcurrentDownloads);
+            var downloadTasks = new List<Task>();
 
             foreach (var fileInfo in files)
-            {
                 downloadTasks.Add(Task.Run(async () =>
                 {
                     await semaphore.WaitAsync(token);
                     try
                     {
-                        var  localPath    = Path.Combine(installPath, fileInfo.Path.TrimStart('/'));
-                        long expectedSize = long.Parse(fileInfo.Size);
-                        long prevBytes    = 0;
+                        var localPath = Path.Combine(installPath, fileInfo.Path.TrimStart('/'));
+                        var expectedSize = long.Parse(fileInfo.Size);
+                        long prevBytes = 0;
 
                         Directory.CreateDirectory(Path.GetDirectoryName(localPath)!);
 
@@ -231,7 +228,7 @@ internal partial class StellaSoraGameInstaller
                             cdnUrls, sourceDir, fileInfo, localPath, expectedSize, token,
                             currentBytes =>
                             {
-                                long delta = currentBytes - prevBytes;
+                                var delta = currentBytes - prevBytes;
                                 prevBytes = currentBytes;
                                 Interlocked.Add(ref progress.DownloadedBytes, delta);
                                 ReportThrottled();
@@ -245,7 +242,6 @@ internal partial class StellaSoraGameInstaller
                         semaphore.Release();
                     }
                 }, token));
-            }
 
             await Task.WhenAll(downloadTasks);
 
@@ -254,8 +250,8 @@ internal partial class StellaSoraGameInstaller
         }
 
         /// <summary>
-        /// Verifies CRC64 of every file in the manifest in parallel.
-        /// Any file that fails is collected, re-downloaded, and re-verified once.
+        ///     Verifies CRC64 of every file in the manifest in parallel.
+        ///     Any file that fails is collected, re-downloaded, and re-verified once.
         /// </summary>
         private async Task VerifyAndRepairAsync(
             List<StellaSoraManifestFile> allFiles,
@@ -272,8 +268,8 @@ internal partial class StellaSoraGameInstaller
 
             InstallProgress verifyProgress = default;
             verifyProgress.TotalCountToDownload = allFiles.Count;
-            verifyProgress.TotalBytesToDownload  = allFiles.Sum(f => long.Parse(f.Size));
-            verifyProgress.TotalStateToComplete  = 1;
+            verifyProgress.TotalBytesToDownload = allFiles.Sum(f => long.Parse(f.Size));
+            verifyProgress.TotalStateToComplete = 1;
 
             var brokenFiles = new ConcurrentBag<StellaSoraManifestFile>();
 
@@ -281,14 +277,14 @@ internal partial class StellaSoraGameInstaller
                 new ParallelOptions { MaxDegreeOfParallelism = MaxConcurrentDownloads, CancellationToken = token },
                 async (file, innerToken) =>
                 {
-                    var  localPath    = Path.Combine(installPath, file.Path.TrimStart('/'));
-                    long expectedSize = long.Parse(file.Size);
-                    ulong expectedHash = ulong.Parse(file.Hash);
-                    bool isOk         = false;
+                    var localPath = Path.Combine(installPath, file.Path.TrimStart('/'));
+                    var expectedSize = long.Parse(file.Size);
+                    var expectedHash = ulong.Parse(file.Hash);
+                    var isOk = false;
 
                     if (File.Exists(localPath) && new FileInfo(localPath).Length == expectedSize)
                     {
-                        ulong localHash = await Task.Run(() => StellaSoraCrc64.Compute(localPath), innerToken);
+                        var localHash = await Task.Run(() => StellaSoraCrc64.Compute(localPath), innerToken);
                         isOk = localHash == expectedHash;
                     }
 
@@ -337,18 +333,19 @@ internal partial class StellaSoraGameInstaller
             CancellationToken token,
             Action<long> onProgress)
         {
-            ulong expectedHash   = ulong.Parse(fileInfo.Hash);
-            long  existingLength = File.Exists(localPath) ? new FileInfo(localPath).Length : 0;
+            var expectedHash = ulong.Parse(fileInfo.Hash);
+            var existingLength = File.Exists(localPath) ? new FileInfo(localPath).Length : 0;
 
             // Skip if file is already correct
             if (existingLength == expectedSize)
             {
-                ulong localHash = StellaSoraCrc64.Compute(localPath);
+                var localHash = StellaSoraCrc64.Compute(localPath);
                 if (localHash == expectedHash)
                 {
                     onProgress(expectedSize);
                     return;
                 }
+
                 SharedStatic.InstanceLogger.LogWarning(
                     $"[StellaSoraInstaller] Hash mismatch: {fileInfo.Path}. Expected: {expectedHash}, Got: {localHash}. Re-downloading...");
                 File.Delete(localPath);
@@ -360,14 +357,13 @@ internal partial class StellaSoraGameInstaller
 
             Exception? lastEx = null;
             foreach (var baseUrl in baseUrls)
-            {
                 try
                 {
-                    string tempPath = localPath + ".tmp";
+                    var tempPath = localPath + ".tmp";
                     await DoDownloadStreamAsync(
                         $"{baseUrl}{sourceDir}{fileInfo.Path}", tempPath, localPath, expectedSize, token, onProgress);
 
-                    ulong downloadedHash = StellaSoraCrc64.Compute(localPath);
+                    var downloadedHash = StellaSoraCrc64.Compute(localPath);
                     if (downloadedHash != expectedHash)
                     {
                         File.Delete(localPath);
@@ -375,13 +371,13 @@ internal partial class StellaSoraGameInstaller
                         throw new Exception(
                             $"Post-download hash mismatch for {fileInfo.Path}. Expected: {expectedHash}, Got: {downloadedHash}");
                     }
+
                     return;
                 }
                 catch (Exception ex)
                 {
                     lastEx = ex;
                 }
-            }
 
             SharedStatic.InstanceLogger.LogError(
                 $"[StellaSoraInstaller] All CDNs failed for {fileInfo.Path}. Last error: {lastEx?.Message}");
@@ -408,7 +404,7 @@ internal partial class StellaSoraGameInstaller
                 }
             }
 
-            long currentDownloaded = existingLength;
+            var currentDownloaded = existingLength;
             if (currentDownloaded > 0) onProgress(currentDownloaded);
 
             using var request = new HttpRequestMessage(HttpMethod.Get, url);
@@ -420,7 +416,7 @@ internal partial class StellaSoraGameInstaller
 
             if (existingLength > 0 && response.StatusCode != HttpStatusCode.PartialContent)
             {
-                existingLength    = 0;
+                existingLength = 0;
                 currentDownloaded = 0;
                 onProgress(0);
                 if (File.Exists(tempPath)) File.Delete(tempPath);
@@ -429,7 +425,7 @@ internal partial class StellaSoraGameInstaller
             response.EnsureSuccessStatusCode();
 
             await using var stream = await response.Content.ReadAsStreamAsync(token);
-            await using var fs     = new FileStream(tempPath,
+            await using var fs = new FileStream(tempPath,
                 existingLength > 0 ? FileMode.Append : FileMode.Create, FileAccess.Write, FileShare.None);
 
             var buffer = ArrayPool<byte>.Shared.Rent(131072);

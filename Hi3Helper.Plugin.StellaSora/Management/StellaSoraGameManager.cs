@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Hi3Helper.Plugin.Core;
 using Hi3Helper.Plugin.Core.Management;
 using Hi3Helper.Plugin.StellaSora.Management.Api;
-using Hi3Helper.Plugin.StellaSora.Utils;
 using Microsoft.Extensions.Logging;
 
 namespace Hi3Helper.Plugin.StellaSora.Management;
@@ -19,45 +18,46 @@ namespace Hi3Helper.Plugin.StellaSora.Management;
 internal partial class StellaSoraGameManager : GameManagerBase
 {
     internal const string LocalManifestFileName = "manifest.json";
-    private readonly string _gameExecutableNameByPreset;
     private readonly string _apiBaseUrl;
-    private readonly string _authSalt;
     private readonly string _authGameId;
     private readonly string _authLauncherVersion;
-
-    private StellaSoraGameConfigData? _latestGameConfig;
+    private readonly string _authSalt;
+    private readonly string _gameExecutableNameByPreset;
     private StellaSoraCdnData? _cdnData;
 
     internal StellaSoraGameManager(
         string gameExecutableNameByPreset,
-        string apiBaseUrl        = "https://launcher-api.yostar.net/api/launcher",
-        string authSalt          = "872550AD59A235662C5B7D5F88CEBE4B",
-        string authGameId        = "StellaSora_CN",
+        string apiBaseUrl = "https://launcher-api.yostar.net/api/launcher",
+        string authSalt = "872550AD59A235662C5B7D5F88CEBE4B",
+        string authGameId = "StellaSora_CN",
         string authLauncherVersion = "1.3.0")
     {
         _gameExecutableNameByPreset = gameExecutableNameByPreset;
-        _apiBaseUrl                 = apiBaseUrl;
-        _authSalt                   = authSalt;
-        _authGameId                 = authGameId;
-        _authLauncherVersion        = authLauncherVersion;
+        _apiBaseUrl = apiBaseUrl;
+        _authSalt = authSalt;
+        _authGameId = authGameId;
+        _authLauncherVersion = authLauncherVersion;
     }
 
     private string GameDataFolderName
     {
         get
         {
-            var exeName = !string.IsNullOrEmpty(_latestGameConfig?.GameStartExeName)
-                ? _latestGameConfig.GameStartExeName
+            var exeName = !string.IsNullOrEmpty(LatestGameConfig?.GameStartExeName)
+                ? LatestGameConfig.GameStartExeName
                 : _gameExecutableNameByPreset;
             return Path.GetFileNameWithoutExtension(exeName) + "_Data";
         }
     }
 
     internal StellaSoraManifest? GameManifest { get; private set; }
-    internal StellaSoraGameConfigData? LatestGameConfig => _latestGameConfig;
-    internal List<string> GameResourceDownloadUrls { get; private set; } = new();
+    internal StellaSoraGameConfigData? LatestGameConfig { get; private set; }
+
+    internal List<string> GameResourceDownloadUrls { get; } = new();
 
     private bool IsInitialized { get; set; }
+
+    private bool? _isInstalledCache;
 
     protected override HttpClient ApiResponseHttpClient { get; set; } = new();
 
@@ -66,11 +66,13 @@ internal partial class StellaSoraGameManager : GameManagerBase
         get
         {
             if (string.IsNullOrEmpty(CurrentGameInstallPath)) return false;
+            if (_isInstalledCache.HasValue) return _isInstalledCache.Value;
+
             var exePath = Path.Combine(CurrentGameInstallPath, _gameExecutableNameByPreset);
-            bool exists = File.Exists(exePath);
-            if (!exists)
-                SharedStatic.InstanceLogger.LogWarning(
-                    $"[StellaSoraGameManager] IsInstalled check failed. EXE not found at: {exePath}");
+            var exists = File.Exists(exePath);
+            SharedStatic.InstanceLogger.LogDebug(
+                $"[StellaSoraGameManager] IsInstalled={exists} (EXE: {exePath})");
+            _isInstalledCache = exists;
             return exists;
         }
     }
@@ -86,13 +88,13 @@ internal partial class StellaSoraGameManager : GameManagerBase
     {
         SharedStatic.InstanceLogger.LogInformation($"[StellaSoraGameManager] SetGamePathInner: '{gamePath}'");
         CurrentGameInstallPath = gamePath;
+        _isInstalledCache = null;
 
-        _latestGameConfig = null;
+        LatestGameConfig = null;
         _cdnData = null;
         GameManifest = null;
 
         if (!string.IsNullOrEmpty(gamePath))
-        {
             _ = Task.Run(async () =>
             {
                 try
@@ -104,7 +106,6 @@ internal partial class StellaSoraGameManager : GameManagerBase
                     SharedStatic.InstanceLogger.LogError($"[StellaSoraGameManager] Re-init failed: {ex}");
                 }
             });
-        }
     }
 
     internal async Task<int> InitAsyncInner(bool forceInit = false, CancellationToken token = default)
@@ -116,9 +117,9 @@ internal partial class StellaSoraGameManager : GameManagerBase
             await FetchCdnDataAsync(token);
             await FetchGameConfigAndManifestAsync(token);
 
-            if (_latestGameConfig != null && _cdnData != null)
+            if (LatestGameConfig != null && _cdnData != null)
             {
-                ApiGameVersion = new GameVersion(_latestGameConfig.GameLatestVersion.Trim());
+                ApiGameVersion = new GameVersion(LatestGameConfig.GameLatestVersion.Trim());
 
                 GameResourceDownloadUrls.Clear();
                 if (!string.IsNullOrEmpty(_cdnData.PrimaryCdn))
@@ -159,7 +160,6 @@ internal partial class StellaSoraGameManager : GameManagerBase
             {
                 var lines = File.ReadAllLines(maniPath);
                 foreach (var line in lines)
-                {
                     if (line.StartsWith("$GAME_VER:", StringComparison.OrdinalIgnoreCase) ||
                         line.StartsWith("$CLIENT_VER:", StringComparison.OrdinalIgnoreCase))
                     {
@@ -169,7 +169,6 @@ internal partial class StellaSoraGameManager : GameManagerBase
                             $"[StellaSoraGameManager] Local Version found from .mani: {verStr}");
                         return;
                     }
-                }
             }
         }
         catch (Exception ex)
@@ -180,9 +179,10 @@ internal partial class StellaSoraGameManager : GameManagerBase
 
     private async Task FetchCdnDataAsync(CancellationToken token)
     {
-        string url = $"{_apiBaseUrl}/advanced/game/download/cdn";
+        var url = $"{_apiBaseUrl}/advanced/game/download/cdn";
         var request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.TryAddWithoutValidation("Authorization", StellaSoraApiHelper.GetAuthHeaderString(_authSalt, _authGameId, _authLauncherVersion));
+        request.Headers.TryAddWithoutValidation("Authorization",
+            StellaSoraApiHelper.GetAuthHeaderString(_authSalt, _authGameId, _authLauncherVersion));
 
         using var response = await ApiResponseHttpClient.SendAsync(request, token);
         response.EnsureSuccessStatusCode();
@@ -203,9 +203,10 @@ internal partial class StellaSoraGameManager : GameManagerBase
 
     private async Task FetchGameConfigAndManifestAsync(CancellationToken token)
     {
-        string url = $"{_apiBaseUrl}/game/config";
+        var url = $"{_apiBaseUrl}/game/config";
         var request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.TryAddWithoutValidation("Authorization", StellaSoraApiHelper.GetAuthHeaderString(_authSalt, _authGameId, _authLauncherVersion));
+        request.Headers.TryAddWithoutValidation("Authorization",
+            StellaSoraApiHelper.GetAuthHeaderString(_authSalt, _authGameId, _authLauncherVersion));
 
         using var response = await ApiResponseHttpClient.SendAsync(request, token);
         response.EnsureSuccessStatusCode();
@@ -215,15 +216,16 @@ internal partial class StellaSoraGameManager : GameManagerBase
 
         if (result?.Code == 200 && result.Data != null)
         {
-            _latestGameConfig = result.Data;
+            LatestGameConfig = result.Data;
             SharedStatic.InstanceLogger.LogInformation(
-                $"[StellaSoraGameManager] Game Config Fetched. Latest Ver: {_latestGameConfig.GameLatestVersion}");
+                $"[StellaSoraGameManager] Game Config Fetched. Latest Ver: {LatestGameConfig.GameLatestVersion}");
 
             // 获取游戏文件清单URL
-            string exchangeUrl =
-                $"{_apiBaseUrl}/game/config/json?version={_latestGameConfig.GameLatestVersion.Trim()}&file_path={_latestGameConfig.GameLatestFilePath}";
+            var exchangeUrl =
+                $"{_apiBaseUrl}/game/config/json?version={LatestGameConfig.GameLatestVersion.Trim()}&file_path={LatestGameConfig.GameLatestFilePath}";
             var exchangeReq = new HttpRequestMessage(HttpMethod.Get, exchangeUrl);
-            exchangeReq.Headers.TryAddWithoutValidation("Authorization", StellaSoraApiHelper.GetAuthHeaderString(_authSalt, _authGameId, _authLauncherVersion));
+            exchangeReq.Headers.TryAddWithoutValidation("Authorization",
+                StellaSoraApiHelper.GetAuthHeaderString(_authSalt, _authGameId, _authLauncherVersion));
 
             using var exchangeRes = await ApiResponseHttpClient.SendAsync(exchangeReq, token);
             if (exchangeRes.IsSuccessStatusCode)
@@ -261,34 +263,40 @@ internal partial class StellaSoraGameManager : GameManagerBase
         }
         catch (Exception ex)
         {
-            SharedStatic.InstanceLogger.LogWarning($"[StellaSoraGameManager] Failed to read local manifest: {ex.Message}");
+            SharedStatic.InstanceLogger.LogWarning(
+                $"[StellaSoraGameManager] Failed to read local manifest: {ex.Message}");
             return null;
         }
     }
 
     internal void WriteLocalManifest(string installPath, StellaSoraManifest newManifest)
     {
-        if (_latestGameConfig == null) return;
+        if (LatestGameConfig == null) return;
         var localManifest = new StellaSoraLocalManifest
         {
-            Version = _latestGameConfig.GameLatestVersion,
-            Basis   = _latestGameConfig.GameLatestFilePath,
-            Files   = newManifest.Files
+            Version = LatestGameConfig.GameLatestVersion,
+            Basis = LatestGameConfig.GameLatestFilePath,
+            Files = newManifest.Files
         };
         var manifestPath = Path.Combine(installPath, LocalManifestFileName);
         try
         {
             var json = JsonSerializer.Serialize(localManifest, StellaSoraApiContext.Default.StellaSoraLocalManifest);
             File.WriteAllText(manifestPath, json);
+            _isInstalledCache = null;
             SharedStatic.InstanceLogger.LogInformation("[StellaSoraGameManager] Local manifest saved.");
         }
         catch (Exception ex)
         {
-            SharedStatic.InstanceLogger.LogWarning($"[StellaSoraGameManager] Failed to write local manifest: {ex.Message}");
+            SharedStatic.InstanceLogger.LogWarning(
+                $"[StellaSoraGameManager] Failed to write local manifest: {ex.Message}");
         }
     }
 
-    protected override Task<int> InitAsync(CancellationToken token) => InitAsyncInner(true, token);
+    protected override Task<int> InitAsync(CancellationToken token)
+    {
+        return InitAsyncInner(true, token);
+    }
 
     protected override void SetCurrentGameVersionInner(in GameVersion gameVersion)
     {
