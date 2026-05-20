@@ -112,6 +112,7 @@ internal partial class StellaSoraGameManager : GameManagerBase
     {
         if (!forceInit && IsInitialized) return 0;
 
+        ReadLocalGameVersion();
         try
         {
             await FetchCdnDataAsync(token);
@@ -139,9 +140,6 @@ internal partial class StellaSoraGameManager : GameManagerBase
             if (string.IsNullOrEmpty(ApiGameVersion.VersionString))
                 ApiGameVersion = CurrentGameVersion;
         }
-
-        // ReadLocalGameVersion runs after API fetch so GameDataFolderName can use GameStartExeName
-        ReadLocalGameVersion();
 
         IsInitialized = true;
         return 0;
