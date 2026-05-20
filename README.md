@@ -12,6 +12,8 @@ A third-party plugin developed for [Collapse Launcher](https://collapselauncher.
 
 **Plugin Status**: Currently, all basic features have been implemented. Extended features await official support and updates from Collapse.
 
+You can download the plugin via the [Official Collapse Launcher Website](https://collapselauncher.com/plugin/catalog.html) or [My Plugin Website (Recommended)](https://cl-plugins.sakurakoi.top/).
+
 <img width="80%" alt="Plugin Preview" src="./.github/assets/img_3.png" />
 
 </div>
@@ -22,16 +24,6 @@ A third-party plugin developed for [Collapse Launcher](https://collapselauncher.
 </p>
 
 ---
-
-> [!WARNING]
-> **Notes and Known Limitations**
->
-> The current incremental game update (Delta Update) is a beta feature, which may lead to update failures, errors, or game file corruption. Please back up your game files before updating.
-> 
-> Since Collapse Launcher currently lacks official plugin development documentation, the functionality of this project is primarily based on the implementation of existing plugins, and **the following limitations may exist**:
->
-> 1. **Pre-download Function**: The official launcher has not yet enabled the pre-download feature, making it impossible to know the corresponding data structure; therefore, it is currently unsupported.
-> 2. **Manual Integrity Check**: Collapse Launcher does not seem to provide relevant API interfaces for manual verification at this time; awaiting upstream updates.
 
 > [!IMPORTANT]
 > This plugin is not officially maintained by Collapse. Please do not submit issues to the official Collapse repository or official Discord.
