@@ -12,7 +12,7 @@ internal partial class SelfUpdate : PluginSelfUpdateBase
 {
     private const string ExCdnFileSuffix = "StellaSora/";
 
-    private const string ExCdn1Url = "https://fastly.jsdelivr.net/gh/misaka10843/CollapsePlugin-ReleaseRepo@main/" +
+    private const string ExCdn1Url = "https://cl-plugins.sakurakoi.top/" +
                                      ExCdnFileSuffix;
 
     private const string ExCdn2Url =
