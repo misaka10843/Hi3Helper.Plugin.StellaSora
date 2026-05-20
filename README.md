@@ -46,8 +46,8 @@ You can download the plugin via the [Official Collapse Launcher Website](https:/
    - [x] Mainland China
    - [x] Traditional Chinese (Taiwan)
    - [ ] South Korea
-   - [ ] Japan
-   - [ ] Global
+   - [x] Japan (No test)
+   - [x] Global (No test)
 - **Incremental Game Updates**: Current incremental game update is a beta feature, which may lead to update failures/errors/file corruption. Please back up game files before updating.
 - **Integrity Verification**: Automatically performs integrity verification and game repair after an update.
 - **Official Launcher Logic Simulation**: Mimics the logical behavior of the official launcher as closely as possible to ensure proper functionality.
@@ -56,7 +56,7 @@ You can download the plugin via the [Official Collapse Launcher Website](https:/
 
 - [ ] **Pre-download Support**: Awaiting the official launcher to implement relevant interfaces.
 - [ ] **Manual Integrity Check**: Collapse Launcher does not seem to provide relevant API interfaces for manual verification; awaiting upstream updates.
-- [ ] **Social Media Panel**: Integrate official social media feed displays (Basic support exists, but currently disabled as icons cannot be retrieved via API).
+- [ ] **Social Media Panel**: Integrate official social media feed displays.
 - [ ] **Game Update**: Awaiting the official release of the next version to test whether the simulated official update logic functions correctly.
 
 ---
