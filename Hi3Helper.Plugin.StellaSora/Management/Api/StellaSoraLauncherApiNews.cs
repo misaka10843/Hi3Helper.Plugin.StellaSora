@@ -19,9 +19,25 @@ namespace Hi3Helper.Plugin.StellaSora.Management.Api;
 [GeneratedComClass]
 public partial class StellaSoraLauncherApiNews : LauncherApiNewsBase
 {
-    private const string ApiBaseUrl = "https://launcher-api.yostar.net/api/launcher";
+    private readonly string _apiBaseUrl;
+    private readonly string _authSalt;
+    private readonly string _authGameId;
 
     private StellaSoraResourceData? _resourceData;
+
+    private readonly string _authLauncherVersion;
+
+    public StellaSoraLauncherApiNews(
+        string apiBaseUrl,
+        string authSalt,
+        string authGameId,
+        string authLauncherVersion)
+    {
+        _apiBaseUrl            = apiBaseUrl;
+        _authSalt              = authSalt;
+        _authGameId            = authGameId;
+        _authLauncherVersion   = authLauncherVersion;
+    }
 
     [field: AllowNull] [field: MaybeNull] protected override HttpClient ApiResponseHttpClient { get; set; } = new();
 
@@ -44,9 +60,9 @@ public partial class StellaSoraLauncherApiNews : LauncherApiNewsBase
     {
         try
         {
-            string url = $"{ApiBaseUrl}/operations/resource";
+            string url = $"{_apiBaseUrl}/operations/resource";
             var request = new HttpRequestMessage(HttpMethod.Get, url);
-            request.Headers.TryAddWithoutValidation("Authorization", StellaSoraApiHelper.GetAuthHeaderString());
+            request.Headers.TryAddWithoutValidation("Authorization", StellaSoraApiHelper.GetAuthHeaderString(_authSalt, _authGameId, _authLauncherVersion));
 
             using var response = await ApiResponseHttpClient.SendAsync(request, token);
             response.EnsureSuccessStatusCode();

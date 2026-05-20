@@ -11,6 +11,7 @@ namespace Hi3Helper.Plugin.StellaSora.Management.Api;
 [JsonSerializable(typeof(StellaSoraBaseResponse<StellaSoraResourceData>))]
 [JsonSerializable(typeof(StellaSoraBaseResponse<StellaSoraConfigJsonData>))]
 [JsonSerializable(typeof(StellaSoraManifest))]
+[JsonSerializable(typeof(StellaSoraLocalManifest))]
 [JsonSerializable(typeof(StellaSoraAuthHead))]
 [JsonSerializable(typeof(StellaSoraAuthHeader))]
 public partial class StellaSoraApiContext : JsonSerializerContext

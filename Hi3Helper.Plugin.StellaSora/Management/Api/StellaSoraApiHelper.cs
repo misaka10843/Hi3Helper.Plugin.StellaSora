@@ -10,15 +10,18 @@ namespace Hi3Helper.Plugin.StellaSora.Management.Api;
 
 public static class StellaSoraApiHelper
 {
-    private const string Salt = "872550AD59A235662C5B7D5F88CEBE4B";
-    private const string GameId = "StellaSora_CN";
-    private const string LauncherVersion = "1.3.0"; // 可能要测试是否需要时刻获取到最新的启动器版本才能正常认证
-
     /// <summary>
     /// 生成 Yostar 启动器 API 所需的 Authorization Header 字符串
     /// </summary>
+    /// <param name="salt">区服专用 Salt</param>
+    /// <param name="gameId">区服专用 GameId</param>
+    /// <param name="launcherVersion">启动器版本号（各区服在 preset config 中维护）</param>
     /// <param name="postData">如果是 GET 请求，传入空字符串即可</param>
-    public static string GetAuthHeaderString(string postData = "")
+    public static string GetAuthHeaderString(
+        string salt,
+        string gameId,
+        string launcherVersion,
+        string postData = "")
     {
         try
         {
@@ -27,14 +30,14 @@ public static class StellaSoraApiHelper
             // 严格构建 head 对象
             var head = new StellaSoraAuthHead
             {
-                GameTag = GameId,
+                GameTag = gameId,
                 Time = time,
-                Version = LauncherVersion
+                Version = launcherVersion
             };
 
             string headJson = JsonSerializer.Serialize(head, StellaSoraApiContext.Default.StellaSoraAuthHead);
 
-            string stringToSign = headJson + postData + Salt;
+            string stringToSign = headJson + postData + salt;
 
             string sign = CalculateMD5(stringToSign).ToLowerInvariant();
 

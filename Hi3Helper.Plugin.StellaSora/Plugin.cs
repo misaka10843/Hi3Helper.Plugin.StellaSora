@@ -15,7 +15,8 @@ public partial class StellaSoraPlugin : PluginBase
 {
     private static readonly IPluginPresetConfig[] PresetConfigInstances =
     [
-        new StellaSoraCnPresetConfig()
+        new StellaSoraCnPresetConfig(),
+        new StellaSoraTwPresetConfig()
     ];
 
     private static DateTime _pluginCreationDate = new(2026, 04, 16, 00, 00, 0, DateTimeKind.Utc);
