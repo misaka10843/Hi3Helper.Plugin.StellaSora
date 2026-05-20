@@ -12,13 +12,13 @@ using Hi3Helper.Plugin.StellaSora.Management.Api;
 namespace Hi3Helper.Plugin.StellaSora.Management.PresetConfig;
 
 [GeneratedComClass]
-public partial class StellaSoraTwPresetConfig : PluginPresetConfigBase
+public partial class StellaSoraJpPresetConfig : PluginPresetConfigBase
 {
     private const string ExEcutableName = "StellaSora.exe";
-    private const string TwApiBaseUrl = "https://api-launcher-tw.stargazer-games.com/api/launcher";
-    private const string TwAuthSalt = "DE7108E9B2842FD460F4777702727869";
-    private const string TwAuthGameId = "StellaSora_TW";
-    private const string TwLauncherVersion = "1.3.0";
+    private const string JpApiBaseUrl = "https://api-launcher-jp.yo-star.com/api/launcher";
+    private const string JpAuthSalt = "DE7108E9B2842FD460F4777702727869";
+    private const string JpAuthGameId = "StellaSora_JP";
+    private const string JpLauncherVersion = "1.3.0";
 
     [field: AllowNull] [field: MaybeNull] public override string GameName => field ??= "Stella Sora";
     [field: AllowNull] [field: MaybeNull] public override string GameExecutableName => field ??= ExEcutableName;
@@ -42,40 +42,40 @@ public partial class StellaSoraTwPresetConfig : PluginPresetConfigBase
     [field: AllowNull] [field: MaybeNull] public override string GameLogFileName => field ??= "Player.log";
     [field: AllowNull] [field: MaybeNull] public override string GameVendorName => field ??= "Yostar";
     [field: AllowNull] [field: MaybeNull] public override string GameRegistryKeyName => field ??= "StellaSora";
-    [field: AllowNull] [field: MaybeNull] public override string ProfileName => field ??= "StellaSoraTw";
+    [field: AllowNull] [field: MaybeNull] public override string ProfileName => field ??= "StellaSoraJp";
 
     [field: AllowNull]
     [field: MaybeNull]
-    public override string ZoneDescription => field ??= "《星塔旅人》是一款由悠星開發的動作角色扮演遊戲。";
+    public override string ZoneDescription => field ??= "Yostarが贈る、旅と日常が交差するファンタジーRPG『ステラソラ』の公式サイトです。";
 
-    [field: AllowNull] [field: MaybeNull] public override string ZoneName => field ??= "繁体中文";
-    [field: AllowNull] [field: MaybeNull] public override string ZoneFullName => field ??= "星塔旅人 (台服)";
+    [field: AllowNull] [field: MaybeNull] public override string ZoneName => field ??= "Japan";
+    [field: AllowNull] [field: MaybeNull] public override string ZoneFullName => field ??= "StellaSora (Japan)";
     [field: AllowNull] [field: MaybeNull] public override string ZoneLogoUrl => field ??= "";
     [field: AllowNull] [field: MaybeNull] public override string ZonePosterUrl => field ??= "";
 
     [field: AllowNull]
     [field: MaybeNull]
-    public override string ZoneHomePageUrl => field ??= "https://stellasora.stargazer-games.com/";
+    public override string ZoneHomePageUrl => field ??= "https://stellasora.jp/";
 
     public override GameReleaseChannel ReleaseChannel => GameReleaseChannel.Public;
 
-    [field: AllowNull] [field: MaybeNull] public override string GameMainLanguage => field ??= "zh-TW";
+    [field: AllowNull] [field: MaybeNull] public override string GameMainLanguage => field ??= "ja-JP";
 
-    [field: AllowNull] [field: MaybeNull] public override string LauncherGameDirectoryName => field ??= "StellaSora_TW";
+    [field: AllowNull] [field: MaybeNull] public override string LauncherGameDirectoryName => field ??= "StellaSora_JP";
 
     [field: AllowNull]
     [field: MaybeNull]
-    public override List<string> SupportedLanguages => field ??= ["Chinese Traditional"];
+    public override List<string> SupportedLanguages => field ??= ["Japanese"];
 
     public override ILauncherApiMedia? LauncherApiMedia
     {
-        get => field ??= new StellaSoraLauncherApiMedia(TwApiBaseUrl, TwAuthSalt, TwAuthGameId, TwLauncherVersion);
+        get => field ??= new StellaSoraLauncherApiMedia(JpApiBaseUrl, JpAuthSalt, JpAuthGameId, JpLauncherVersion);
         set;
     }
 
     public override ILauncherApiNews? LauncherApiNews
     {
-        get => field ??= new StellaSoraLauncherApiNews(TwApiBaseUrl, TwAuthSalt, TwAuthGameId, TwLauncherVersion);
+        get => field ??= new StellaSoraLauncherApiNews(JpApiBaseUrl, JpAuthSalt, JpAuthGameId, JpLauncherVersion);
         set;
     }
 
@@ -83,9 +83,9 @@ public partial class StellaSoraTwPresetConfig : PluginPresetConfigBase
     {
         get => field ??= new StellaSoraGameManager(
             ExEcutableName,
-            TwApiBaseUrl,
-            TwAuthSalt,
-            TwAuthGameId);
+            JpApiBaseUrl,
+            JpAuthSalt,
+            JpAuthGameId);
         set;
     }
 
