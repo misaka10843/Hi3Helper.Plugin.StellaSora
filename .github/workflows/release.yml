@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version'
+        description: 'Release version (e.g. 0.1.2)'
         required: true
         type: string
       publish_profile:
@@ -27,7 +27,27 @@ permissions:
   pull-requests: write
 
 jobs:
+  update_repo_version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Bump Version in .csproj
+        run: |
+          sed -i -E "s/<Version>.*<\/Version>/<Version>${{ inputs.version }}<\/Version>/" Hi3Helper.Plugin.StellaSora/Hi3Helper.Plugin.StellaSora.csproj
+
+      - name: Commit and Push changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git diff-index --quiet HEAD || (git commit -m "chore(release): bump version to ${{ inputs.version }} [skip ci]" && git push)
+
   release:
+    needs: update_repo_version
     runs-on: windows-latest
 
     steps:
@@ -36,6 +56,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+          ref: ${{ github.ref }}
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
@@ -49,44 +70,40 @@ jobs:
         run: dotnet build --configuration Release Hi3Helper.Plugin.StellaSora.sln --no-restore /p:Version=${{ inputs.version }}
 
       - name: Publish with selected profile
-        run: dotnet publish Hi3Helper.Plugin.StellaSora/Hi3Helper.Plugin.StellaSora.csproj --configuration Release --runtime win-x64 /p:PublishProfile=${{ inputs.publish_profile }} /p:Version=${{ inputs.version }} -o ./publish
+        run: dotnet publish Hi3Helper.Plugin.StellaSora/Hi3Helper.Plugin.StellaSora.csproj --configuration Release --runtime win-x64 /p:PublishProfile=${{ inputs.publish_profile }} /p:Version=${{ inputs.version }} -o ./publish_output
 
       - name: Generate build provenance
         uses: actions/attest-build-provenance@v3
         with:
-          subject-path: './publish/**'
+          subject-path: './publish_output/**'
 
       # --- STEP 1: Zip Clean Files (Before Indexer runs) ---
-      # We save this OUTSIDE the publish folder so Indexer doesn't process it.
       - name: Create Clean Release Zip
-        run: Compress-Archive -Path ./publish/* -DestinationPath ./StellaSora_v${{ inputs.version }}.zip
+        run: Compress-Archive -Path ./publish_output/* -DestinationPath ./StellaSora_v${{ inputs.version }}.zip
 
-      # --- STEP 2: Indexer (Modifies publish folder) ---
-      # This generates the .br files and the Launcher-specific zip inside ./publish
+      # --- STEP 2: Indexer (generates .br files and Launcher zip inside ./publish_output) ---
       - name: Run Indexer
-        run: .\Indexer.exe .\publish
+        run: .\Indexer.exe .\publish_output
 
-      # --- STEP 4: Generate Changelog ---
+      # --- STEP 3: Generate Changelog ---
       - name: Generate Changelog
         uses: orhun/git-cliff-action@v4
         with:
           config: cliff.toml
-          # (Implicitly grabs all "unreleased" changes since v0.4.0)
           args: --unreleased --tag v${{ inputs.version }} --strip header
         id: git-cliff
 
-      # --- STEP 5: Create GitHub Release ---
+      # --- STEP 4: Create GitHub Release ---
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ inputs.version }}
           name: Release v${{ inputs.version }}
           body: ${{ steps.git-cliff.outputs.content }}
-          # Upload zip with correct manifest from step 2
-          files: ./publish/*.zip
+          files: ./publish_output/*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
+
       - name: Checkout target repo
         uses: actions/checkout@v6
         with:
@@ -99,12 +116,11 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path ./target-repo/StellaSora/build
           New-Item -ItemType Directory -Force -Path ./target-repo/StellaSora/Lib
-          Copy-Item -Path ./publish/StellaSora.dll -Destination ./target-repo/StellaSora/
-          Copy-Item -Path ./publish/StellaSora.pdb -Destination ./target-repo/StellaSora/
-          Copy-Item -Path ./publish/manifest.json -Destination ./target-repo/StellaSora/
-          Copy-Item -Path ./publish/SevenZipExtractor.pdb -Destination ./target-repo/StellaSora/
-          Copy-Item -Path ./publish/Lib/7z.dll -Destination ./target-repo/StellaSora/Lib/
-          Copy-Item -Path ./publish/*.zip -Destination ./target-repo/StellaSora/build/
+          Copy-Item -Path ./publish_output/*.dll -Destination ./target-repo/StellaSora/ -ErrorAction SilentlyContinue
+          Copy-Item -Path ./publish_output/*.pdb -Destination ./target-repo/StellaSora/ -ErrorAction SilentlyContinue
+          Copy-Item -Path ./publish_output/manifest.json -Destination ./target-repo/StellaSora/ -ErrorAction SilentlyContinue
+          Copy-Item -Path "./publish_output/Lib/*" -Destination "./target-repo/StellaSora/Lib/" -Recurse -Force -ErrorAction SilentlyContinue
+          Copy-Item -Path ./publish_output/*.zip -Destination ./target-repo/StellaSora/build/
 
       - name: Create Pull Request in Release Repo
         uses: peter-evans/create-pull-request@v8
@@ -116,15 +132,14 @@ jobs:
           title: 'Release StellaSora Plugin v${{ inputs.version }}'
           body: |
             Automated release of StellaSora Plugin v${{ inputs.version }}
-            
+
             ${{ steps.git-cliff.outputs.content }}
-            
+
             Files updated:
             - StellaSora.dll
             - StellaSora.pdb
             - manifest.json
-            - SevenZipExtractor.pdb
-            - Lib/7z.dll
+            - Lib/*
             - build/*.zip
           commit-message: 'Release StellaSora Plugin v${{ inputs.version }}'
           delete-branch: false
